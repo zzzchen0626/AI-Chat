@@ -1,6 +1,8 @@
 import { authApi } from '@pc/apis/user'
 import { useUserStore } from '@pc/store'
 
+import { clearAuthSession, logoutSession, setAuthSession } from './authSession'
+
 import type { LoginParams, RegisterParams, CaptchaParams } from '@pc/types/user'
 
 export const userService = {
@@ -12,15 +14,13 @@ export const userService = {
       const response = await authApi.login(params)
 
       if (response.code === 1) {
-        useUserStore.setState({
-          isAuthenticated: true,
+        setAuthSession(response.data.token)
+        useUserStore.setState((state) => ({
+          ...state,
           user: {
             nickName: response.data.nickName
-          },
-          token: response.data.token,
-          loading: false,
-          error: null
-        })
+          }
+        }))
       } else {
         throw new Error(response.msg || '登录失败')
       }
@@ -79,12 +79,11 @@ export const userService = {
     }
   },
 
-  logout() {
-    useUserStore.setState({
-      isAuthenticated: false,
-      user: null,
-      token: null,
-      error: null
-    })
+  async logout() {
+    await logoutSession()
+  },
+
+  clearLocalAuth() {
+    clearAuthSession()
   }
 }

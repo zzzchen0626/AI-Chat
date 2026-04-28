@@ -11,6 +11,16 @@ export const authApi = {
     return request<UserInfo>('/users/login', 'POST', params)
   },
 
+  // 刷新 access token
+  refreshToken: (): Promise<Data<{ token: string }>> => {
+    return request<{ token: string }>('/users/refresh-token', 'POST')
+  },
+
+  // 退出登录
+  logout: (): Promise<Data<object>> => {
+    return request<object>('/users/logout', 'POST')
+  },
+
   // 注册
   register: (params: RegisterParams): Promise<Data<object>> => {
     return request<object>('/users/register', 'POST', params)
