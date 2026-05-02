@@ -1,0 +1,48 @@
+---
+description: 本项目的 Ant Design 组件使用规范
+alwaysApply: true
+---
+
+# Ant Design 使用规范
+
+- 优先使用 `antd` 组件，而不是在已有标准组件可用时自定义 UI。
+- 使用 Ant Design 官方文档中的最新 API、属性名和命名方式。
+- 在表单、表格、弹窗、抽屉、按钮、输入框、消息提示和排版等场景中，默认优先考虑 `antd`，不要轻易自行实现。
+- 编写或重构 UI 时，在确定 props 或交互模式前，先通过 MCP 查阅 Ant Design 文档。
+- 在为 Ant Design 组件编写样式时，优先使用 `antd` 的设计令牌和语义 DOM hooks。
+- 除非封装层确实增加了项目特定行为，否则避免再包装 `antd` 组件。
+- 保持自定义 CSS 尽量精简，优先使用 `className` / `style` / 主题令牌，而不是覆盖内部结构。
+
+## 示例
+
+```tsx
+import { Button, Modal, Input } from 'antd'
+
+export function SearchBar() {
+  return (
+    <div>
+      <Input placeholder="搜索" />
+      <Button type="primary">搜索</Button>
+    </div>
+  )
+}
+```
+
+## 避免
+
+```tsx
+export function SearchBar() {
+  return (
+    <div>
+      <input />
+      <button>搜索</button>
+    </div>
+  )
+}
+```
+
+## 补充说明
+
+- 如果某个需求已经能用 Ant Design 组件实现，优先直接使用对应组件。
+- 如果设计确实需要自定义模式，请先说明 Ant Design 为什么不满足需求，再引入自定义 UI。
+- 只有当项目中已有的 `antd` 二次封装确实符合需求时，才优先使用这些封装。

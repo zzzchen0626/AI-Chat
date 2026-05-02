@@ -32,6 +32,10 @@ export type SendMessageType = {
   fileId?: string
 }
 
+export type CancelMessageType = {
+  id: string
+}
+
 export interface ImageContent {
   type: 'image'
   content: string

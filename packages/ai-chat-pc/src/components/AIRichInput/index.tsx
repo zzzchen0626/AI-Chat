@@ -1,12 +1,18 @@
-import { CoffeeOutlined, LinkOutlined, FireOutlined, SmileOutlined, CloseOutlined } from '@ant-design/icons'
+import {
+  CoffeeOutlined,
+  LinkOutlined,
+  FireOutlined,
+  SmileOutlined,
+  CloseOutlined
+} from '@ant-design/icons'
 import { Attachments, Prompts, Sender } from '@ant-design/x'
 import { Button, message, Spin, type GetRef } from 'antd'
 import React from 'react'
 import { useRef, useState } from 'react'
 import SparkMD5 from 'spark-md5'
-import type { PromptsProps } from '@ant-design/x'
 
 import {
+  cancelChatMessage,
   createSSE,
   getCheckFileAPI,
   postFileChunksAPI,
@@ -18,6 +24,7 @@ import { BASE_URL, DEFAULT_MESSAGE } from '@pc/constant'
 import { useChatStore, useConversationStore } from '@pc/store'
 import { isImageByExtension } from '@pc/utils/judgeImage'
 
+import type { PromptsProps } from '@ant-design/x'
 import type { RcFile } from 'antd/es/upload'
 
 // 切片的大小 - 使用2MB分片大小以提高上传效率
@@ -322,6 +329,23 @@ const AIRichInput = () => {
     // })
   }
 
+  // 用户侧主动中断
+  const stopGeneration = async () => {
+    const chatId = idRef.current || selectedId
+
+    if (chatId) {
+      try {
+        await cancelChatMessage({ id: chatId })
+      } catch (error) {
+        console.error('取消生成请求失败:', error)
+      }
+    }
+
+    setInputLoading(false)
+    setHasInput(!!inputValue.trim())
+    message.info('已停止生成')
+  }
+
   const createSSEAndSendMessage = (
     chatId: string,
     message: string,
@@ -338,6 +362,10 @@ const AIRichInput = () => {
     let content = ''
     eventSourceRef.current.onmessage = (event) => {
       try {
+        if (!eventSourceRef.current) {
+          return
+        }
+
         const data = JSON.parse(event.data)
         if (data.type === 'chunk') {
           content += data.content
@@ -345,6 +373,8 @@ const AIRichInput = () => {
         } else if (data.type === 'complete') {
           content = data.content
           setInputLoading(false)
+          eventSourceRef.current?.close()
+          eventSourceRef.current = null
           content = ''
         } else if (data.type === 'error') {
           console.error('SSE连接错误:', data.error)
@@ -358,6 +388,7 @@ const AIRichInput = () => {
       console.error('SSE连接错误:', error)
       eventSourceRef.current?.close()
       eventSourceRef.current = null
+      setInputLoading(false)
     }
 
     // sendMessage(chatId, message, images, fileId)
@@ -513,29 +544,30 @@ const AIRichInput = () => {
       key: '1',
       icon: <CoffeeOutlined style={{ color: '#964B00' }} />,
       description: 'How to rest effectively after long hours of work?',
-      disabled: false,
+      disabled: false
     },
     {
       key: '2',
       icon: <SmileOutlined style={{ color: '#FAAD14' }} />,
       description: 'What are the secrets to maintaining a positive mindset?',
-      disabled: false,
+      disabled: false
     },
     {
       key: '3',
       icon: <FireOutlined style={{ color: '#FF4D4F' }} />,
       description: 'How to stay calm under immense pressure?',
-      disabled: false,
-    },
-  ];
+      disabled: false
+    }
+  ]
 
   // 处理提示建议点击
-  const handlePromptClick = (info: { data: any }) => {
+  const handlePromptClick = (info: { data: { description?: string } }) => {
     console.log('点击了提示建议:', info.data)
-    setInputValue(info.data.description)
-    setHasInput(true)
+    if (typeof info.data.description === 'string') {
+      setInputValue(info.data.description)
+      setHasInput(true)
+    }
   }
-
 
   return (
     <React.Fragment>
@@ -552,11 +584,12 @@ const AIRichInput = () => {
               onItemClick={handlePromptClick}
             />
 
-          {/* 关闭Prompts */}
-          <div className="mt-2">
-            <Button type="text" icon={<CloseOutlined />} onClick={() => setShowPrompts(false)} />
+            {/* 关闭Prompts */}
+            <div className="mt-2">
+              <Button type="text" icon={<CloseOutlined />} onClick={() => setShowPrompts(false)} />
+            </div>
           </div>
-        </div>)}
+        )}
 
         <Sender
           ref={senderRef}
@@ -571,10 +604,11 @@ const AIRichInput = () => {
             }
             setOpen(true)
           }}
-          submitType="shiftEnter"
+          submitType="enter"
           placeholder="请输入您的问题"
           loading={inputLoading}
-          onSubmit={(message) => submitMessage(message)}
+          onSubmit={submitMessage}
+          onCancel={stopGeneration}
         />
       </div>
     </React.Fragment>

@@ -6,7 +6,13 @@ import { request } from '@pc/utils/index'
 
 import { type Data } from '../utils/request'
 
-import type { checkRespType, mergeChunkType, mergeResType, SendMessageType } from '@pc/types/chat'
+import type {
+  CancelMessageType,
+  checkRespType,
+  mergeChunkType,
+  mergeResType,
+  SendMessageType
+} from '@pc/types/chat'
 
 /**
  * 检查已上传的文件分片
@@ -39,6 +45,10 @@ export const postMergeFileAPI = (data: mergeChunkType) => {
 // 发送消息
 export const sendChatMessage = (data: SendMessageType): Promise<Data<object>> => {
   return request('chat/sendMessage', 'POST', data)
+}
+
+export const cancelChatMessage = (data: CancelMessageType): Promise<Data<object>> => {
+  return request('chat/cancelMessage', 'POST', data)
 }
 
 // 建立sse连接

@@ -1,3 +1,28 @@
+/* 容器与回到底部按钮 */
+.chat-bubble-wrapper {
+  position: relative;
+  height: 100%;
+}
+
+.chat-bubble-scroll-bottom {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  z-index: 10;
+  transform: translateX(-50%);
+  height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .03),
+    0 4px 10px 0 rgba(0, 0, 0, .05),
+    0 4px 16px 0 rgba(0, 0, 0, .05);
+}
+
+.chat-bubble-scroll-bottom .anticon {
+  font-size: 16px;
+}
+
 /* 隐藏滚动条但保留滚动功能 */
 .chat-bubble-list::-webkit-scrollbar {
     display: none;
