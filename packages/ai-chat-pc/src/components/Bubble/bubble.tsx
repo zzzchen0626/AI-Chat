@@ -1,111 +1,81 @@
 import { ArrowDownOutlined, UserOutlined } from '@ant-design/icons'
 import { Bubble } from '@ant-design/x'
 import { Button } from 'antd'
-import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { Virtuoso } from 'react-virtuoso'
 
 import { useChatStore, useConversationStore } from '@pc/store'
 
 import { allMessageContent } from './content'
 
-import type { BubbleListRef } from '@ant-design/x/es/bubble/BubbleList'
 import type { MessageContent } from '@pc/types/chat'
 import type { GetProp } from 'antd'
+import type { VirtuosoHandle } from 'react-virtuoso'
 
-import './bubble.css' // 添加CSS导入
+import './bubble.css'
 import 'highlight.js/styles/github.css'
 
-// 判断是否进入底部的距离
-const SCROLL_BOTTOM_DISTANCE = 80
+const AT_BOTTOM_THRESHOLD = 100
 
 export const ChatBubble = () => {
-  // 消息列表Ref
-  const listRef = useRef<BubbleListRef>(null)
-  // 节流定时器
-  const throttleTimerRef = useRef<number | null>(null)
-  // 滚动跟随开关
-  const autoScrollRef = useRef(true)
-  // 用于在 ref 更新后触发视图刷新
-  const [, forceUpdate] = useReducer((value: number) => value + 1, 0)
+  const [isAtBottom, setIsAtBottom] = useState(true)
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null)
   const { messages } = useChatStore()
   const { selectedId } = useConversationStore()
 
-  // 不同文本样式渲染
-  const rolesAsObject: GetProp<typeof Bubble.List, 'roles'> = {
-    system: {
-      placement: 'start',
-      avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
-      variant: 'borderless',
-      style: {
-        maxWidth: '100%'
+  const rolesAsObject: GetProp<typeof Bubble.List, 'roles'> = useMemo(
+    () => ({
+      system: {
+        placement: 'start',
+        avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
+        variant: 'borderless',
+        style: {
+          maxWidth: '100%',
+          marginBottom: 16
+        }
+      },
+      user: {
+        placement: 'end',
+        avatar: { icon: <UserOutlined />, style: { background: '#87d068' } },
+        style: {
+          marginBottom: 16
+        }
+      },
+      file: {
+        placement: 'end',
+        variant: 'borderless',
+        style: {
+          marginBottom: 16
+        }
+      },
+      image: {
+        placement: 'end',
+        variant: 'borderless',
+        style: {
+          marginBottom: 16
+        }
       }
-    },
-    user: {
-      placement: 'end',
-      avatar: { icon: <UserOutlined />, style: { background: '#87d068' } }
-    },
-    file: {
-      placement: 'end',
-      variant: 'borderless'
-    },
-    image: {
-      placement: 'end',
-      variant: 'borderless'
-    }
-  }
+    }),
+    []
+  )
 
   const chatMessage = selectedId ? messages.get(selectedId) : []
 
-  // 滚动到底部
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    listRef.current?.scrollTo({
-      offset: Number.MAX_SAFE_INTEGER,
-      behavior,
-      block: 'end'
-    })
-  }, [])
+  const scrollToBottom = useCallback(() => {
+    const index = (chatMessage?.length ?? 0) - 1
 
-  // 是否接近底部
-  const isNearBottom = useCallback((element: HTMLDivElement) => {
-    const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight
-    return distanceToBottom <= SCROLL_BOTTOM_DISTANCE
-  }, [])
-
-  useEffect(() => {
-    const element = listRef.current?.nativeElement
-    if (!element) {
+    if (index < 0) {
       return
     }
-    const handleScroll = () => {
-      if (throttleTimerRef.current !== null) {
-        return
-      }
-      // 滚动事件的节流；每次检测是否接近底部，恢复自动跟随
-      throttleTimerRef.current = window.setTimeout(() => {
-        throttleTimerRef.current = null
-        const nearBottom = isNearBottom(element)
 
-        if (autoScrollRef.current !== nearBottom) {
-          autoScrollRef.current = nearBottom
-          forceUpdate()
-          console.log(autoScrollRef.current, 'autoScrollRef.current')
-        }
-      }, 100)
-    }
-    element.addEventListener('scroll', handleScroll, { passive: true })
+    virtuosoRef.current?.scrollToIndex({
+      index,
+      align: 'end',
+      behavior: 'smooth'
+    })
+  }, [chatMessage?.length])
 
-    return () => {
-      // 卸载事件 & 定时器
-      element.removeEventListener('scroll', handleScroll)
-
-      if (throttleTimerRef.current !== null) {
-        window.clearTimeout(throttleTimerRef.current)
-        throttleTimerRef.current = null
-      }
-    }
-  }, [isNearBottom, selectedId])
-
-  // 渲染消息内容
-  const renderMessageContent = (content: MessageContent[]) => {
+  const renderMessageContent = useCallback((content: MessageContent[]) => {
     if (!content || content.length === 0) {
       return null
     }
@@ -113,16 +83,23 @@ export const ChatBubble = () => {
     return content.map((item, index) => {
       return (
         <div key={index}>
-          {/*  eslint-disable-next-line @typescript-eslint/no-explicit-any*/}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {allMessageContent[item.type as keyof typeof allMessageContent](item as any)}
         </div>
       )
     })
-  }
+  }, [])
 
   return (
-    <div className="chat-bubble-wrapper">
-      {!autoScrollRef.current && (
+    <div
+      className="chat-bubble-wrapper"
+      style={{
+        // height: '100%',
+        // width: '50vw',
+        // overflowY: 'auto' ,// 确保可以滚动但滚动条被CSS隐藏
+        paddingBottom: '10%'
+      }}>
+      {!isAtBottom && (
         <Button
           className="chat-bubble-scroll-bottom"
           shape="circle"
@@ -131,27 +108,36 @@ export const ChatBubble = () => {
             color: '#000',
             borderColor: '#e5e5e5'
           }}
-          onClick={() => scrollToBottom('smooth')}>
+          onClick={scrollToBottom}>
           <ArrowDownOutlined />
         </Button>
       )}
-      <Bubble.List
-        ref={listRef}
+
+      <Virtuoso
+        ref={virtuosoRef}
         className="chat-bubble-list"
-        autoScroll={autoScrollRef.current}
         style={{
-          paddingInline: 16,
           height: '100%',
           width: '50vw',
-          overflowY: 'auto', // 确保可以滚动但滚动条被CSS隐藏
-          paddingBottom: '25%'
+          overflowY: 'auto' // 确保可以滚动但滚动条被CSS隐藏
+          // paddingBottom: '25%'
         }}
-        roles={rolesAsObject}
-        items={chatMessage?.map((message, index) => ({
-          key: index,
-          role: message.role,
-          content: renderMessageContent(message.content)
-        }))}
+        data={chatMessage || []}
+        atBottomThreshold={AT_BOTTOM_THRESHOLD}
+        atBottomStateChange={setIsAtBottom}
+        followOutput={(atBottom) => (atBottom ? 'smooth' : false)}
+        components={{
+          Footer: () => <div style={{ height: 20 }} />
+        }}
+        itemContent={(_, message) => (
+          <Bubble // Bubble 只负责消息样式ui布局
+            placement={rolesAsObject[message.role]?.placement}
+            avatar={rolesAsObject[message.role]?.avatar}
+            variant={rolesAsObject[message.role]?.variant}
+            style={rolesAsObject[message.role]?.style}
+            content={renderMessageContent(message.content)}
+          />
+        )}
       />
     </div>
   )

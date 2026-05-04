@@ -48,6 +48,8 @@ const AIRichInput = () => {
   const abortControllerRef = useRef<AbortController | null>(null)
   const idRef = useRef<string | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
+  const chunkBufferRef = useRef('')
+  const chunkFlushTimerRef = useRef<number | null>(null)
   const uploadedChunksRef = useRef<number[]>([])
   const fileChunksRef = useRef<ChunkInfo[]>([])
   const fileIdRef = useRef<string | null>(null)
@@ -294,6 +296,32 @@ const AIRichInput = () => {
     }
   }
 
+  const flushChunkBuffer = () => {
+    if (!chunkBufferRef.current) {
+      return
+    }
+    // 将 buffer 区增量更新到ui,然后置空定时器和buffer
+    addChunkMessage(chunkBufferRef.current)
+    chunkBufferRef.current = ''
+
+    if (chunkFlushTimerRef.current !== null) {
+      window.clearTimeout(chunkFlushTimerRef.current)
+      chunkFlushTimerRef.current = null
+    }
+  }
+
+  // 开启批量更新延时器
+  const startBufferTimer = () => {
+    if (chunkFlushTimerRef.current !== null) {
+      return
+    }
+
+    chunkFlushTimerRef.current = window.setTimeout(() => {
+      chunkFlushTimerRef.current = null
+      flushChunkBuffer()
+    }, 50)
+  }
+
   // 粘贴上传/文件框选择上传都会拦截至此处
   const handleFileUpload = (file: RcFile) => {
     selectFile(file)
@@ -358,8 +386,7 @@ const AIRichInput = () => {
     }
 
     eventSourceRef.current = createSSE(chatId)
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    let content = ''
+
     eventSourceRef.current.onmessage = (event) => {
       try {
         if (!eventSourceRef.current) {
@@ -368,14 +395,16 @@ const AIRichInput = () => {
 
         const data = JSON.parse(event.data)
         if (data.type === 'chunk') {
-          content += data.content
-          addChunkMessage(data.content)
+          // 原先每个 chunk 都增量更新
+          // 现在是:接收到 chunk 先进入 Buffer
+          // 开启批量更新定时器,有节奏渲染
+          chunkBufferRef.current += data.content
+          startBufferTimer()
         } else if (data.type === 'complete') {
-          content = data.content
+          flushChunkBuffer()
           setInputLoading(false)
           eventSourceRef.current?.close()
           eventSourceRef.current = null
-          content = ''
         } else if (data.type === 'error') {
           console.error('SSE连接错误:', data.error)
         }
@@ -386,6 +415,7 @@ const AIRichInput = () => {
 
     eventSourceRef.current.onerror = (error) => {
       console.error('SSE连接错误:', error)
+      flushChunkBuffer()
       eventSourceRef.current?.close()
       eventSourceRef.current = null
       setInputLoading(false)
@@ -561,7 +591,7 @@ const AIRichInput = () => {
   ]
 
   // 处理提示建议点击
-  const handlePromptClick = (info: { data: { description?: string } }) => {
+  const handlePromptClick = (info: Parameters<NonNullable<PromptsProps['onItemClick']>>[0]) => {
     console.log('点击了提示建议:', info.data)
     if (typeof info.data.description === 'string') {
       setInputValue(info.data.description)
