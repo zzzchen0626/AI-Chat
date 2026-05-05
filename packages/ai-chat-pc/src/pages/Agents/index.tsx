@@ -35,7 +35,7 @@ const mockAgents: Agent[] = [
   }
 ]
 
-export default function Agents() {
+function Agents() {
   const [searchText, setSearchText] = useState('')
   const navigate = useNavigate()
   const { setSelectedId } = useConversationStore()
@@ -147,3 +147,5 @@ export default function Agents() {
     </div>
   )
 }
+
+export default Agents

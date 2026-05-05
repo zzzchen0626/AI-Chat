@@ -1,16 +1,17 @@
-import { HomeOutlined, MessageOutlined } from '@ant-design/icons'
+import { HomeOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons'
 import { Bubble } from '@ant-design/x'
-import { Button, Spin, Result } from 'antd'
+import { Button, Result, Spin } from 'antd'
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import { sessionApi } from '@pc/apis/session'
+import { renderMessageContent } from '@pc/utils'
 
 import type { MessageProps } from '@pc/store/useChatStore'
 import type { ChatSession } from '@pc/types/session'
 import type { GetProp } from 'antd'
 
-export function SharedChat() {
+function SharedChat() {
   const { shareId } = useParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +48,7 @@ export function SharedChat() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <Spin size="large" tip="加载中..." />
       </div>
     )
@@ -73,21 +74,21 @@ export function SharedChat() {
   const rolesAsObject: GetProp<typeof Bubble.List, 'roles'> = {
     ai: {
       placement: 'start',
-      avatar: { style: { background: '#fde3cf' } },
+      avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
       style: {
         maxWidth: 600
       }
     },
     user: {
       placement: 'end',
-      avatar: { style: { background: '#87d068' } }
+      avatar: { icon: <UserOutlined />, style: { background: '#87d068' } }
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="mx-auto max-w-4xl p-4">
+      <div className="rounded-lg bg-white p-6 shadow">
+        <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold">{conversation.title}</h1>
           <div className="flex space-x-2">
             <Link to="/">
@@ -105,16 +106,19 @@ export function SharedChat() {
           <Bubble.List
             className="chat-bubble-list"
             style={{
-              paddingInline: 16,
               width: '100%',
-              overflowY: 'auto'
+              overflowY: 'auto',
+              paddingInline: 16
             }}
             roles={rolesAsObject}
             items={messages.map((message, index) => {
-              const { content } = message
               const isAI = message.role === 'system'
 
-              return { key: index, role: isAI ? 'ai' : 'user', content }
+              return {
+                key: index,
+                role: isAI ? 'ai' : 'user',
+                content: renderMessageContent(message.content)
+              }
             })}
           />
         </div>
@@ -126,3 +130,5 @@ export function SharedChat() {
     </div>
   )
 }
+
+export default SharedChat

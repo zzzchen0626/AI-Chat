@@ -5,10 +5,8 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { Virtuoso } from 'react-virtuoso'
 
 import { useChatStore, useConversationStore } from '@pc/store'
+import { renderMessageContent } from '@pc/utils'
 
-import { allMessageContent } from './content'
-
-import type { MessageContent } from '@pc/types/chat'
 import type { GetProp } from 'antd'
 import type { VirtuosoHandle } from 'react-virtuoso'
 
@@ -74,21 +72,6 @@ export const ChatBubble = () => {
       behavior: 'smooth'
     })
   }, [chatMessage?.length])
-
-  const renderMessageContent = useCallback((content: MessageContent[]) => {
-    if (!content || content.length === 0) {
-      return null
-    }
-
-    return content.map((item, index) => {
-      return (
-        <div key={index}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {allMessageContent[item.type as keyof typeof allMessageContent](item as any)}
-        </div>
-      )
-    })
-  }, [])
 
   return (
     <div

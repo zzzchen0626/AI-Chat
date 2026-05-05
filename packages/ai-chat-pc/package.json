@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build"
+    "build": "tsc -b && vite build",
+    "build:analyze": "cross-env ANALYZE=true vite build"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +22,8 @@
     "react-transition-group": "^4.4.5",
     "react-virtuoso": "^4.18.6",
     "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "rollup-plugin-visualizer": "^5.14.0"
   }
 }

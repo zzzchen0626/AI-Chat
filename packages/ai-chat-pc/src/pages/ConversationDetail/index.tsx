@@ -10,7 +10,7 @@ type Conversation = {
   title: string
 }
 
-export function ConversationDetail() {
+function ConversationDetail() {
   const { id } = useParams()
   const { conversations } = useConversationStore()
   const { messages } = useChatStore()
@@ -43,3 +43,5 @@ export function ConversationDetail() {
     </div>
   )
 }
+
+export default ConversationDetail
