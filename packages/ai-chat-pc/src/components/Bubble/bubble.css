@@ -1,9 +1,10 @@
-/* 容器与回到底部按钮 */
+/* 聊天气泡容器：作为相对定位的基准，方便放置“回到底部”按钮。 */
 .chat-bubble-wrapper {
   position: relative;
   height: 100%;
 }
 
+/* 回到底部按钮：悬浮在列表下方中间位置，供用户快速跳转到最新消息。 */
 .chat-bubble-scroll-bottom {
   position: absolute;
   left: 50%;
@@ -19,11 +20,12 @@
     0 4px 16px 0 rgba(0, 0, 0, .05);
 }
 
+/* 按钮里的图标尺寸统一调整，避免视觉过大。 */
 .chat-bubble-scroll-bottom .anticon {
   font-size: 16px;
 }
 
-/* 隐藏滚动条但保留滚动功能 */
+/* 隐藏滚动条但保留滚动功能，增强聊天区域的整洁感。 */
 .chat-bubble-list::-webkit-scrollbar {
     display: none;
     /* Chrome, Safari, Edge */
@@ -36,13 +38,14 @@
     /* Firefox */
 }
 
-/* 图片消息样式 */
+/* 普通图片消息的外层样式，让图片消息不会撑满整行。 */
 .message-image-container {
     margin: 5px 0;
     display: inline-block;
     max-width: 100%;
 }
 
+/* 普通图片 hover 时略微放大，提供可交互反馈。 */
 .message-image-container .ant-image {
     display: block;
     transition: all 0.3s ease;
@@ -65,7 +68,7 @@
     white-space: pre-wrap;
   }
 
-/* Markdown 内容美化样式 - Kimi 风格 */
+/* Markdown 容器：统一控制行高、字号和字体栈。 */
 .markdown-content {
   line-height: 1.7;
   color: #2c3e50;
@@ -73,6 +76,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* 各级标题统一拉开上下间距，并增加字重。 */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
@@ -101,16 +105,26 @@
 .markdown-content h5 { font-size: 15px; }
 .markdown-content h6 { font-size: 14px; }
 
+/* 段落间距和颜色，保证 Markdown 文本的阅读节奏。 */
 .markdown-content p {
   margin: 12px 0;
   line-height: 1.7;
   color: #4a5568;
 }
 
+/* 列表恢复默认样式，确保有序/无序列表都能正常显示。 */
 .markdown-content ul,
 .markdown-content ol {
   margin: 12px 0;
   padding-left: 28px;
+}
+
+.markdown-content ul {
+  list-style: disc;
+}
+
+.markdown-content ol {
+  list-style: decimal;
 }
 
 .markdown-content li {
@@ -123,6 +137,7 @@
   color: #718096;
 }
 
+/* 引用块用于突出显示原文/提示信息。 */
 .markdown-content blockquote {
   margin: 16px 0;
   padding: 12px 20px;
@@ -133,7 +148,8 @@
   border-radius: 0 8px 8px 0;
 }
 
-.markdown-content code {
+/* 行内代码单独高亮，避免和代码块共用样式。 */
+.markdown-content code:not(pre code) {
   background: #f6f8fa;
   padding: 2px 6px;
   border-radius: 4px;
@@ -146,53 +162,84 @@
 }
 
 .markdown-content pre {
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+  border: none;
+  position: relative;
+}
+
+/* 代码块容器：承载头部、折叠状态和内容区域。 */
+.md-codeblock {
   margin: 16px 0;
-  background: #f8f8f8;
+  border: 1px solid #e1e4e8;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #e1e4e8;
-  position: relative;
-}
-
-.markdown-content pre {
-  position: relative;
-}
-
-/* .markdown-content pre::before {
-  content: attr(data-lang);
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
   background: #f8f8f8;
-  border-bottom: 1px solid #e1e4e8;
+}
+
+/* 代码块头部：放折叠按钮、语言标签和复制按钮。 */
+.md-codeblock__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #24292e;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  text-transform: capitalize;
-} */
-
-.markdown-content pre::after {
-  content: '复制';
-  position: absolute;
-  top: 8px;
-  right: 16px;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #f8f8f8;
   color: #586069;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border-bottom: 1px solid #e1e4e8;
 }
 
+/* 头部左右两个图标按钮复用同一套基础样式。 */
+.md-codeblock__toggle,
+.md-codeblock__copy {
+  border: none;
+  background: transparent;
+  color: #586069;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.md-codeblock__toggle:hover,
+.md-codeblock__copy:hover {
+  color: #24292e;
+}
+
+/* 折叠按钮图标，配合 is-collapsed 控制旋转状态。 */
+.md-codeblock__toggle-icon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.md-codeblock:not(.is-collapsed) .md-codeblock__toggle-icon {
+  transform: rotate(0deg);
+}
+
+.md-codeblock.is-collapsed .md-codeblock__toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* 语言标签占据中间剩余空间，便于左右对齐。 */
+.md-codeblock__lang {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+/* 代码主体区域：折叠后不渲染。 */
+.md-codeblock__body {
+  overflow: auto;
+}
+
+/* 代码字体和内边距统一在这里控制。 */
 .markdown-content pre code {
   background-color: transparent;
   padding: 16px;
-  padding-top: 16px;
   color: #24292e;
   font-size: 14px;
   line-height: 1.6;
@@ -213,6 +260,30 @@
 .markdown-content a:hover {
   color: #2c5282;
   border-bottom-color: #2c5282;
+}
+
+.markdown-content ul {
+  list-style: disc;
+}
+
+.markdown-content ol {
+  list-style: decimal;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 12px 0;
+  padding-left: 28px;
+}
+
+.markdown-content li {
+  margin: 6px 0;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.markdown-content li::marker {
+  color: #718096;
 }
 
 .markdown-content strong {
@@ -271,11 +342,6 @@
 
 .markdown-content > *:last-child {
   margin-bottom: 0;
-}
-
-/* 代码高亮增强 */
-.markdown-content pre {
-  position: relative;
 }
 
 /* 语法高亮颜色 - 使用 highlight.js 的类名 */
