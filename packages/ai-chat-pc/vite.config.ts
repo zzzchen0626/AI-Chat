@@ -7,8 +7,8 @@ import { defineConfig } from 'vite'
 
 const isAnalyze = process.env.ANALYZE === 'true'
 
-function isPathIn(id: string, segments: string[]) {
-  return segments.every((segment) => id.includes(segment))
+function isAnyPathIn(id: string, segments: string[]) {
+  return segments.some((segment) => id.includes(segment))
 }
 
 // https://vite.dev/config/
@@ -35,31 +35,34 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) {
-            if (isPathIn(id, ['src', 'pages', 'SharedChat'])) {
-              return 'page-shared-chat'
-            }
-
-            if (isPathIn(id, ['src', 'pages', 'Agents'])) {
-              return 'page-agents'
-            }
-
-            if (isPathIn(id, ['src', 'pages', 'ConversationDetail'])) {
-              return 'page-conversation-detail'
-            }
-
             return undefined
           }
 
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+          if (isAnyPathIn(id, ['react', 'react-dom', 'react-router-dom'])) {
             return 'vendor-react'
           }
 
-          if (id.includes('antd') || id.includes('@ant-design')) {
+          if (isAnyPathIn(id, ['antd', '@ant-design', 'rc-', '@rc-component'])) {
             return 'vendor-antd'
           }
 
-          if (id.includes('dayjs')) {
-            return 'vendor-dayjs'
+          if (
+            isAnyPathIn(id, [
+              'react-markdown',
+              'remark-',
+              'rehype-',
+              'unified',
+              'micromark',
+              'mdast',
+              'hast',
+              'highlight.js'
+            ])
+          ) {
+            return 'vendor-markdown'
+          }
+
+          if (id.includes('react-virtuoso')) {
+            return 'vendor-virtuoso'
           }
 
           if (id.includes('axios') || id.includes('event-source-polyfill')) {

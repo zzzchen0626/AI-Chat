@@ -42,6 +42,10 @@ export const postMergeFileAPI = (data: mergeChunkType) => {
   return request<mergeResType>('/file/merge', 'POST', data)
 }
 
+export const cancelFileAPI = (fileId: string) => {
+  return request('/file/cancel', 'POST', { fileId })
+}
+
 // 发送消息
 export const sendChatMessage = (data: SendMessageType): Promise<Data<object>> => {
   return request('chat/sendMessage', 'POST', data)

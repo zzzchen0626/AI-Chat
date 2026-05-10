@@ -41,13 +41,16 @@ const copyToClipboard = async (text: string) => {
   }
 }
 
-// 代码块组件负责“语言识别、语法高亮、折叠和复制”四件事。
+// 代码块组件负责“语言识别、语法高亮、折叠、复制”四件事。
 const CodeBlock = ({ className, codeText }: { className?: string; codeText: string }) => {
   // 折叠状态只控制代码主体，保留头部便于再次展开。
   const [collapsed, setCollapsed] = useState(false)
+  //正则从 className 里提取语言名
   const languageMatch = /language-(\w+)/.exec(className || '')
   const language = languageMatch?.[1] || 'text'
+  // “语言合法性检查”：highlight.js 是否支持
   const normalizedLanguage = hljs.getLanguage(language) ? language : 'text'
+  //显示在代码块头部的语言标签。
   const displayLabel = normalizedLanguage === 'text' ? 'text' : normalizedLanguage
 
   if (!codeText) {
@@ -99,6 +102,7 @@ const MarkdownText = ({ content }: { content: string }) => {
       // 区分行内代码和代码块，避免把普通 `code` 误渲染成大块代码框。
       code({ className, children }) {
         if (className?.includes('language-')) {
+          // 判断依据：是否有语言
           return <code>{children}</code>
         }
 
@@ -106,7 +110,9 @@ const MarkdownText = ({ content }: { content: string }) => {
       },
       // pre 里包着真正的代码块内容，所以把它交给 CodeBlock 统一处理。
       pre({ children }) {
+        /* 告诉 TS：这个 children 我认为是一个 React 元素，你按这个类型看它。 */
         const codeElement = children as ReactElement<{ className?: string; children?: ReactNode }>
+        // 转成字符串 去掉末尾的换行符
         const codeText = String(codeElement?.props?.children ?? '').replace(/\n$/, '')
         return <CodeBlock className={codeElement?.props?.className} codeText={codeText} />
       },
@@ -118,7 +124,7 @@ const MarkdownText = ({ content }: { content: string }) => {
       // 链接统一做安全校验，并在新标签页打开。
       a({ href = '', children }) {
         const safeHref = isSafeUrl(href) ? href : '#'
-
+        // 链接安全化处理 ; 跳转策略
         return (
           <a href={safeHref} target="_blank" rel="noreferrer noopener">
             {children}

@@ -17,6 +17,7 @@ import {
   getCheckFileAPI,
   postFileChunksAPI,
   postMergeFileAPI,
+  cancelFileAPI,
   sendChatMessage
 } from '@pc/apis/chat'
 import { sessionApi } from '@pc/apis/session'
@@ -329,14 +330,25 @@ const AIRichInput = () => {
   }
 
   // 取消文件上传
-  const cancleUpload = () => {
+  const cancleUpload = async () => {
+    const fileId = fileIdRef.current
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort() // 取消所有分片请求
+      abortControllerRef.current.abort() // 前端：取消所有分片上传请求和清空状态
       abortControllerRef.current = null
+    }
+    if (fileId) {
+      try {
+        await cancelFileAPI(fileId)
+      } catch {
+        // 忽略取消接口失败，避免影响前端取消体验
+      }
     }
     setIsLoading(false)
     uploadedChunksRef.current = []
     fileChunksRef.current = []
+    fileIdRef.current = ''
+    fileNameRef.current = ''
+    filePathRef.current = ''
     message.info('文件上传已取消')
   }
 
