@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:analyze": "cross-env ANALYZE=true vite build"
+    "build:analyze": "cross-env ANALYZE=true vite build",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
